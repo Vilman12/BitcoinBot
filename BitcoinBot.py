@@ -2,8 +2,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from prettytable import PrettyTable
 import requests
+import os
 
-TOKEN = "6727030368:AAHVoZc9XxoFioqHCQZ-VJU4_nwyBBJXUNs"
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+if not TOKEN:
+    raise ValueError("TELEGRAM_TOKEN environment variable not set")
 
 def start(update, context):
     user = update.effective_user
@@ -27,14 +30,24 @@ def button(update, context):
 
 def get_crypto(update, context):
     try:
-        response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,litecoin,cardano,polkadot,stellar,chainlink,binancecoin,usd-coin&vs_currencies=usd')
+        params = {
+            "ids": "bitcoin,ethereum,ripple,litecoin,cardano,polkadot,stellar,chainlink,binancecoin,usd-coin",
+            "vs_currencies": "usd",
+        }
+        response = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price",
+            params=params,
+            timeout=10,
+        )
+        response.raise_for_status()
         data = response.json()
 
         table = PrettyTable()
         table.field_names = ["Криптовалюта", "Курс в USD"]
 
         for crypto, rate in data.items():
-            table.add_row([crypto.capitalize(), f"${rate['usd']}"])
+            name = crypto.replace('-', ' ').title()
+            table.add_row([name, f"${rate['usd']}"])
 
         if update.message:
             update.message.reply_text(f"<pre>{table}</pre>", parse_mode='HTML')
