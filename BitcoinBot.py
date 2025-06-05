@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from prettytable import PrettyTable
 import requests
 
-TOKEN = "6727030368:AAHVoZc9XxoFioqHCQZ-VJU4_nwyBBJXUNs"
+TOKEN = ""
 
 def start(update, context):
     user = update.effective_user
